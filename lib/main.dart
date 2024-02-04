@@ -148,7 +148,7 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                           actions: <Widget>[
                             ElevatedButton(
                               onPressed: () {
-                                //create acitivity object and add to the list
+                                //create category and add it to the list of categories.
                                 parentState.addToCategoryList(
                                   Category(
                                     cName: _categoryNameController.text,
@@ -176,10 +176,148 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
               (category) {
                 return Card(
                   child: ListTile(
-                    title: Text(category.cName),
+                    title: Text('${category.cName} (${Activity.childrenCount})'),
                     subtitle: Text(
                       category.isCountBased ? 'Count Based' : 'Time Based',
                     ),
+                    onTap: () {
+                      //navigate to the activity page with material route by passing the category object
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ActivityPage(category: category),
+                        ),
+                      );
+                    },
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+//activity page with an elevated button to add a new activity
+
+class ActivityPage extends ConsumerStatefulWidget {
+  const ActivityPage({super.key, required this.category});
+
+  final Category category;
+
+  @override
+  _ActivityPageState createState() => _ActivityPageState();
+}
+
+class _ActivityPageState extends ConsumerState<ActivityPage> {
+  TextEditingController _activityNameController = TextEditingController();
+
+  @override
+  Widget build(BuildContext context) {
+    final parentState = ref.watch(parent);
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        title: Text('Activities for ' + widget.category.cName),
+      ),
+      body: Center(
+        child: ListView(
+          children: <Widget>[
+            Align(
+              alignment: Alignment.center,
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(
+                  'Add a new activity',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      title: Text('Add a new activity'),
+                      content: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: <Widget>[
+                          TextField(
+                            decoration: InputDecoration(
+                              labelText: 'Activity Name',
+                            ),
+                            controller: _activityNameController,
+                          ),
+                        ],
+                      ),
+                      actions: <Widget>[
+                        ElevatedButton(
+                          onPressed: () {
+                            //create activity and add it to the list of activities.
+                            parentState.addToActivityList(
+                              Activity(
+                                aName: _activityNameController.text,
+                                aCreateOn: DateTime.now(),
+                                countMap: {},
+                                cName: widget.category.cName,
+                                isCountBased: widget.category.isCountBased,
+                                cCreatedOn: widget.category.cCreatedOn,
+                              ),
+                            );
+
+                            Navigator.of(context).pop();
+                          },
+                          child: Text('Add'),
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
+              child: Text('Add a new activity'),
+            ),
+
+            //using ... operator and cards to display the list of activities
+            ...parentState.activityList.map(
+              (activity) {
+                return Card(
+                  child: ListTile(
+                    title: Text(activity.aName.toString() + "  total records = " + activity.countMap.length.toString()),
+                    subtitle: Text(
+                      activity.isCountBased ? 'Count Based' : 'Time Based',
+                    ),
+                    onTap: () {
+                      //show an alert dialogue box for adding count
+                      showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: Text('Add count'),
+                              content: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: <Widget>[
+                                  TextField(
+                                    decoration: InputDecoration(
+                                      labelText: 'Count',
+                                    ),
+                                    keyboardType: TextInputType.number,
+                                    onSubmitted: (String value) {
+                                      //add the count to the count map of the activity
+                                      activity.addToCountMap(int.parse(value));
+                                      Navigator.of(context).pop();
+                                    },
+                                  ),
+                                ],
+                              ),
+                            );
+                          });
+                    },
                   ),
                 );
               },

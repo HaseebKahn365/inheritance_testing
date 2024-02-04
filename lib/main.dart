@@ -1,5 +1,8 @@
+// ignore_for_file: prefer_const_constructors, prefer_const_literals_to_create_immutables
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:inheritance_testing/model.dart';
 
 /*
 Switching to inheritance:
@@ -28,6 +31,11 @@ void main() {
   );
 }
 
+//creating an instance of the parent class for state
+final parent = ChangeNotifierProvider<Parent>((ref) {
+  return Parent();
+});
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -48,43 +56,136 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class MyHomePage extends StatefulWidget {
+class MyHomePage extends ConsumerStatefulWidget {
   const MyHomePage({super.key, required this.title});
 
   final String title;
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  _MyHomePageState createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class _MyHomePageState extends ConsumerState<MyHomePage> {
+  TextEditingController _categoryNameController = TextEditingController();
+  bool _isCountBased = true;
 
   @override
   Widget build(BuildContext context) {
+    final parentState = ref.watch(parent);
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
       ),
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+        child: ListView(
           children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
+            Align(
+              alignment: Alignment.center,
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(
+                  'Welcome to the Personal Tracker',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
             ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
+            ElevatedButton(
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return StatefulBuilder(
+                      builder: (context, setState) {
+                        return AlertDialog(
+                          title: Text('Add a new category'),
+                          content: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: <Widget>[
+                              TextField(
+                                decoration: InputDecoration(
+                                  labelText: 'Category Name',
+                                ),
+                                controller: _categoryNameController,
+                              ),
+                              Column(
+                                children: <Widget>[
+                                  Row(
+                                    children: [
+                                      Text('Count Based'),
+                                      Radio(
+                                        value: true,
+                                        groupValue: _isCountBased,
+                                        onChanged: (bool? value) {
+                                          setState(() {
+                                            _isCountBased = true;
+                                          });
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                  Row(
+                                    children: [
+                                      Text('Time Based'),
+                                      Radio(
+                                        value: false,
+                                        groupValue: _isCountBased,
+                                        onChanged: (bool? value) {
+                                          setState(() {
+                                            _isCountBased = false;
+                                          });
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          actions: <Widget>[
+                            ElevatedButton(
+                              onPressed: () {
+                                //create acitivity object and add to the list
+                                parentState.addToCategoryList(
+                                  Category(
+                                    cName: _categoryNameController.text,
+                                    isCountBased: _isCountBased,
+                                    cCreatedOn: DateTime.now(),
+                                  ),
+                                );
+
+                                Navigator.of(context).pop();
+                              },
+                              child: Text('Add'),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  },
+                );
+              },
+              child: Text('Add a new category'),
+            ),
+
+            //using ... operator and cards to display the list of categories
+            ...parentState.categoryList.map(
+              (category) {
+                return Card(
+                  child: ListTile(
+                    title: Text(category.cName),
+                    subtitle: Text(
+                      category.isCountBased ? 'Count Based' : 'Time Based',
+                    ),
+                  ),
+                );
+              },
             ),
           ],
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {},
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
       ),
     );
   }

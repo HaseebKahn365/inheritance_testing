@@ -87,88 +87,91 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
                 child: Text(
                   'Welcome to the Personal Tracker',
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: 40,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
             ),
-            ElevatedButton(
-              onPressed: () {
-                showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return StatefulBuilder(
-                      builder: (context, setState) {
-                        return AlertDialog(
-                          title: Text('Add a new category'),
-                          content: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: <Widget>[
-                              TextField(
-                                decoration: InputDecoration(
-                                  labelText: 'Category Name',
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 200),
+              child: ElevatedButton(
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return StatefulBuilder(
+                        builder: (context, setState) {
+                          return AlertDialog(
+                            title: Text('Add a new category'),
+                            content: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: <Widget>[
+                                TextField(
+                                  decoration: InputDecoration(
+                                    labelText: 'Category Name',
+                                  ),
+                                  controller: _categoryNameController,
                                 ),
-                                controller: _categoryNameController,
-                              ),
-                              Column(
-                                children: <Widget>[
-                                  Row(
-                                    children: [
-                                      Text('Count Based'),
-                                      Radio(
-                                        value: true,
-                                        groupValue: _isCountBased,
-                                        onChanged: (bool? value) {
-                                          setState(() {
-                                            _isCountBased = true;
-                                          });
-                                        },
-                                      ),
-                                    ],
-                                  ),
-                                  Row(
-                                    children: [
-                                      Text('Time Based'),
-                                      Radio(
-                                        value: false,
-                                        groupValue: _isCountBased,
-                                        onChanged: (bool? value) {
-                                          setState(() {
-                                            _isCountBased = false;
-                                          });
-                                        },
-                                      ),
-                                    ],
-                                  ),
-                                ],
+                                Column(
+                                  children: <Widget>[
+                                    Row(
+                                      children: [
+                                        Text('Count Based'),
+                                        Radio(
+                                          value: true,
+                                          groupValue: _isCountBased,
+                                          onChanged: (bool? value) {
+                                            setState(() {
+                                              _isCountBased = true;
+                                            });
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                    Row(
+                                      children: [
+                                        Text('Time Based'),
+                                        Radio(
+                                          value: false,
+                                          groupValue: _isCountBased,
+                                          onChanged: (bool? value) {
+                                            setState(() {
+                                              _isCountBased = false;
+                                            });
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                            actions: <Widget>[
+                              ElevatedButton(
+                                onPressed: () {
+                                  //create category and add it to the list of categories.
+                                  parentState.addToCategoryList(
+                                    Category(
+                                      cName: _categoryNameController.text,
+                                      isCountBased: _isCountBased,
+                                      cCreatedOn: DateTime.now(),
+                                    ),
+                                  );
+
+                                  Navigator.of(context).pop();
+                                },
+                                child: Text('Add'),
                               ),
                             ],
-                          ),
-                          actions: <Widget>[
-                            ElevatedButton(
-                              onPressed: () {
-                                //create category and add it to the list of categories.
-                                parentState.addToCategoryList(
-                                  Category(
-                                    cName: _categoryNameController.text,
-                                    isCountBased: _isCountBased,
-                                    cCreatedOn: DateTime.now(),
-                                  ),
-                                );
-
-                                Navigator.of(context).pop();
-                              },
-                              child: Text('Add'),
-                            ),
-                          ],
-                        );
-                      },
-                    );
-                  },
-                );
-              },
-              child: Text('Add a new category'),
+                          );
+                        },
+                      );
+                    },
+                  );
+                },
+                child: Text('Add a new category'),
+              ),
             ),
 
             //using ... operator and cards to display the list of categories
@@ -199,7 +202,6 @@ class _MyHomePageState extends ConsumerState<MyHomePage> {
     );
   }
 }
-
 //activity page with an elevated button to add a new activity
 
 class ActivityPage extends ConsumerStatefulWidget {
@@ -213,6 +215,13 @@ class ActivityPage extends ConsumerStatefulWidget {
 
 class _ActivityPageState extends ConsumerState<ActivityPage> {
   TextEditingController _activityNameController = TextEditingController();
+  TextEditingController _countController = TextEditingController();
+
+  Future<void> _refresh() async {
+    // Add any refresh logic here, e.g., fetching updated data
+    await Future.delayed(Duration(seconds: 2));
+    setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -222,107 +231,118 @@ class _ActivityPageState extends ConsumerState<ActivityPage> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text('Activities for ' + widget.category.cName),
       ),
-      body: Center(
-        child: ListView(
-          children: <Widget>[
-            Align(
-              alignment: Alignment.center,
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Text(
-                  'Add a new activity',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.bold,
+      body: RefreshIndicator(
+        onRefresh: _refresh,
+        child: Center(
+          child: ListView(
+            children: <Widget>[
+              Align(
+                alignment: Alignment.center,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(
+                    'Add a new activity',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return AlertDialog(
-                      title: Text('Add a new activity'),
-                      content: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: <Widget>[
-                          TextField(
-                            decoration: InputDecoration(
-                              labelText: 'Activity Name',
+              ElevatedButton(
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: Text('Add a new activity'),
+                        content: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: <Widget>[
+                            TextField(
+                              decoration: InputDecoration(
+                                labelText: 'Activity Name',
+                              ),
+                              controller: _activityNameController,
                             ),
-                            controller: _activityNameController,
+                          ],
+                        ),
+                        actions: <Widget>[
+                          ElevatedButton(
+                            onPressed: () {
+                              parentState.addToActivityList(
+                                Activity(
+                                  aName: _activityNameController.text,
+                                  aCreateOn: DateTime.now(),
+                                  countMap: {},
+                                  cName: widget.category.cName,
+                                  isCountBased: widget.category.isCountBased,
+                                  cCreatedOn: widget.category.cCreatedOn,
+                                ),
+                              );
+
+                              Navigator.of(context).pop();
+                            },
+                            child: Text('Add'),
                           ),
                         ],
+                      );
+                    },
+                  );
+                },
+                child: Text('Add a new activity'),
+              ),
+
+              // using ... operator and cards to display the list of activities
+              ...parentState.activityList.map(
+                (activity) {
+                  return Card(
+                    child: ListTile(
+                      title: Text(activity.aName.toString() + "  total records = " + activity.countMap.length.toString()),
+                      subtitle: Text(
+                        activity.isCountBased ? 'Count Based' : 'Time Based',
                       ),
-                      actions: <Widget>[
-                        ElevatedButton(
-                          onPressed: () {
-                            //create activity and add it to the list of activities.
-                            parentState.addToActivityList(
-                              Activity(
-                                aName: _activityNameController.text,
-                                aCreateOn: DateTime.now(),
-                                countMap: {},
-                                cName: widget.category.cName,
-                                isCountBased: widget.category.isCountBased,
-                                cCreatedOn: widget.category.cCreatedOn,
-                              ),
-                            );
-
-                            Navigator.of(context).pop();
-                          },
-                          child: Text('Add'),
-                        ),
-                      ],
-                    );
-                  },
-                );
-              },
-              child: Text('Add a new activity'),
-            ),
-
-            //using ... operator and cards to display the list of activities
-            ...parentState.activityList.map(
-              (activity) {
-                return Card(
-                  child: ListTile(
-                    title: Text(activity.aName.toString() + "  total records = " + activity.countMap.length.toString()),
-                    subtitle: Text(
-                      activity.isCountBased ? 'Count Based' : 'Time Based',
-                    ),
-                    onTap: () {
-                      //show an alert dialogue box for adding count
-                      showDialog(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return AlertDialog(
-                              title: Text('Add count'),
-                              content: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: <Widget>[
-                                  TextField(
-                                    decoration: InputDecoration(
-                                      labelText: 'Count',
+                      onTap: () {
+                        showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                title: Text('Add count'),
+                                content: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: <Widget>[
+                                    TextField(
+                                      controller: _countController,
+                                      decoration: InputDecoration(
+                                        labelText: 'Count',
+                                      ),
+                                      keyboardType: TextInputType.number,
+                                      onSubmitted: (String value) {
+                                        Navigator.of(context).pop();
+                                      },
                                     ),
-                                    keyboardType: TextInputType.number,
-                                    onSubmitted: (String value) {
-                                      //add the count to the count map of the activity
-                                      activity.addToCountMap(int.parse(value));
+                                  ],
+                                ),
+                                actions: [
+                                  ElevatedButton(
+                                    onPressed: () async {
+                                      activity.addToCountMap(int.parse(_countController.text));
+                                      await _refresh();
+
                                       Navigator.of(context).pop();
                                     },
+                                    child: Text('Submit'),
                                   ),
                                 ],
-                              ),
-                            );
-                          });
-                    },
-                  ),
-                );
-              },
-            ),
-          ],
+                              );
+                            });
+                      },
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );
